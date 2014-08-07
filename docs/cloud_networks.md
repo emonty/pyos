@@ -3,24 +3,24 @@
 ## Basic Concepts
 Rackspace Cloud Networks allows you to create virtual isolated networks and associate them with your Cloud Server instances. This allows you to create a typical bastion setup, with servers that are only accessible from the internet through a primary bastion server.
 
-See the [sample code](https://github.com/rackspace/pyrax/tree/master/samples/cloud_networks) for an example of creating a typical bastion server setup.
+See the [sample code](https://github.com/rackspace/pyos/tree/master/samples/cloud_networks) for an example of creating a typical bastion server setup.
 
 
 ## Default Networks
-By default, servers are created with access to two pseudo-networks: `public` and `private`. The `public` network is the connection to the Internet, while the `private` network is the internal `ServiceNet`, which provides connectivity among devices within a data center. These pseudo-networks have special IDs which are available in `pyrax` as the following constants:
+By default, servers are created with access to two pseudo-networks: `public` and `private`. The `public` network is the connection to the Internet, while the `private` network is the internal `ServiceNet`, which provides connectivity among devices within a data center. These pseudo-networks have special IDs which are available in `pyos` as the following constants:
 
-    pyrax.cloud_networks.PUBLIC_NET_ID
-    pyrax.cloud_networks.SERVICE_NET_ID
+    pyos.cloud_networks.PUBLIC_NET_ID
+    pyos.cloud_networks.SERVICE_NET_ID
 
 
-## Using Cloud Networks in pyrax
-Once you have authenticated, you can reference the cloud networks module via `pyrax.cloud_networks`. That is a lot to type over and over in your code, so it is easier if you include the following line at the beginning of your code:
+## Using Cloud Networks in pyos
+Once you have authenticated, you can reference the cloud networks module via `pyos.cloud_networks`. That is a lot to type over and over in your code, so it is easier if you include the following line at the beginning of your code:
 
-    cnw = pyrax.cloud_networks
+    cnw = pyos.cloud_networks
 
 Then you can simply use the alias `cnw` to reference the module. All of the code samples in this document assume that `cnw` has been defined this way.
 
-One thing to note: most of the other cloud products refer to the user-defined identification of its resources as their `name`, while Cloud Networks refers to this as a network's `label`. Wherever possible pyrax tries to alias the two, so you can use `label` and `name` interchangeably.
+One thing to note: most of the other cloud products refer to the user-defined identification of its resources as their `name`, while Cloud Networks refers to this as a network's `label`. Wherever possible pyos tries to alias the two, so you can use `label` and `name` interchangeably.
 
 
 ## Listing Existing Networks
@@ -54,7 +54,7 @@ To delete a network you've created, you use either of the two equivalent command
     # or, if you have an object reference
     network.delete()
 
-In the first form, you pass either a `CloudNetwork` object or the ID of the network to be deleted to the pyrax.cloud_networks client. However, if you already have a `CloudNetwork` object for the network to be deleted, you can simply call its `delete()` method directly.
+In the first form, you pass either a `CloudNetwork` object or the ID of the network to be deleted to the pyos.cloud_networks client. However, if you already have a `CloudNetwork` object for the network to be deleted, you can simply call its `delete()` method directly.
 
 Please note that you cannot delete a network that is attached to a server. As there is no way to "unattach" a network from a server, you must first delete the server if you want to delete the network. If you attempt to delete a network that is attached to one or more servers, a **`NetworkInUse`** exception is raised.
 
@@ -62,12 +62,12 @@ Please note that you cannot delete a network that is attached to a server. As th
 ## Creating a Server with an Isolated Network
 Isolated networks can only be attached to servers when the servers are being created; you cannot attach an isolated network to an existing server.
 
-There is an optional `networks` parameter available in the `create()` command when creating a new server. If you do not specify this, the server is created with the public and private networks by default. If you do include the `networks` parameter, **you must specify all the networks for that server**, including the default networks. The Cloud Servers `create()` command expects the argument for the `networks` parameter to be in a particular format, so `pyrax` makes that easy for you by providing the `get_server_networks()` method on both the `CloudNetwork` and the `CloudNetworksClient` classes.
+There is an optional `networks` parameter available in the `create()` command when creating a new server. If you do not specify this, the server is created with the public and private networks by default. If you do include the `networks` parameter, **you must specify all the networks for that server**, including the default networks. The Cloud Servers `create()` command expects the argument for the `networks` parameter to be in a particular format, so `pyos` makes that easy for you by providing the `get_server_networks()` method on both the `CloudNetwork` and the `CloudNetworksClient` classes.
 
 For the following examples, assume that you have run this block of code to create an isolated network:
 
-    cnw = pyrax.cloud_networks
-    cs = pyrax.cloudservers
+    cnw = pyos.cloud_networks
+    cs = pyos.cloudservers
     isolated = cnw.create("my_net", cidr="192.168.0.0/24")
 
 To create a server that uses *only* this isolated network, call:

@@ -19,12 +19,12 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cbs = pyrax.cloud_blockstorage
+pyos.set_credential_file(creds_file)
+cbs = pyos.cloud_blockstorage
 
 # This assumes that you have are deleting the volumes named 'my_fast_volume'
 # and 'my_standard_volume' that were created in create_volume.py.

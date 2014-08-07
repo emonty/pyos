@@ -19,17 +19,17 @@
 from __future__ import print_function
 
 import os
-import pyrax
-from pyrax import exc
-from pyrax import utils
+import pyos
+from pyos import exc
+from pyos import utils
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
+pyos.set_credential_file(creds_file)
 
-pyrax.set_http_debug(True)
+pyos.set_http_debug(True)
 
-cnw = pyrax.cloud_networks
+cnw = pyos.cloud_networks
 network_name = "SAMPLE_NETWORK"
 
 # Get the network created in the create_network sample script

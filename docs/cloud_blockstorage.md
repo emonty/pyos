@@ -6,16 +6,16 @@ Rackspace Cloud Block Storage (**CBS**) is a block level storage solution that a
 CBS is built upon the **OpenStack Cinder** project. See [http://cinder.openstack.org](http://cinder.openstack.org) for complete details about the available features and functionality.
 
 
-## CBS in pyrax
-Once you have authenticated and connected to the block storage service, you can reference the block storage module via `pyrax.cloud_blockstorage`. This provides general information about the volumes for the account as well as the ability to define new block storage volumes. You can also attach and detach volumes from your cloud servers.
+## CBS in pyos
+Once you have authenticated and connected to the block storage service, you can reference the block storage module via `pyos.cloud_blockstorage`. This provides general information about the volumes for the account as well as the ability to define new block storage volumes. You can also attach and detach volumes from your cloud servers.
 
-All of the code samples in this document assume that you have already imported pyrax, authenticated, and created the name `cbs` at the top of the script, like this:
+All of the code samples in this document assume that you have already imported pyos, authenticated, and created the name `cbs` at the top of the script, like this:
 
-    import pyrax
-    pyrax.set_credential_file("my_cred_file")
+    import pyos
+    pyos.set_credential_file("my_cred_file")
     # or
-    # pyrax.set_credentials("my_username", "my_api_key")
-    cbs = pyrax.cloud_blockstorage
+    # pyos.set_credentials("my_username", "my_api_key")
+    cbs = pyos.cloud_blockstorage
 
 
 ## Block Storage Types
@@ -70,7 +70,7 @@ This prints:
 ## Attaching a Volume to a Server
 To mount your Cloud Block Storage to one of your Cloud Servers, you call the volume's `attach_to_instance()` method, passing in a server reference (either a `CloudServer` instance, or the ID of that server), along with the mount point for the volume on that server. Here is an example:
 
-    server = pyrax.cloudservers.servers.get("MyServerID")
+    server = pyos.cloudservers.servers.get("MyServerID")
     mountpoint = "/dev/xvdb"
     vol.attach_to_instance(server, mountpoint=mountpoint)
     # or

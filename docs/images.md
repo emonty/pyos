@@ -6,10 +6,10 @@ The Images API allows you to do much more with your compute resources than simpl
 There are two main types of images: **public** and **private**. Public images are those supplied by your cloud provider, and are available to everyone. Private images are those that you create in your own account by creating snapshots of your compute resources; these are only available to your account, or to any account with which you explicitly share them.
 
 
-## Using Images in pyrax
-Once you have authenticated, you can reference the Images service via `pyrax.images`. To make your coding easier, include the following line at the beginning of your code:
+## Using Images in pyos
+Once you have authenticated, you can reference the Images service via `pyos.images`. To make your coding easier, include the following line at the beginning of your code:
 
-    imgs = pyrax.images
+    imgs = pyos.images
 
 Then you can simply use the alias `imgs` to reference the service. All of the code samples in this document assume that `imgs` has been defined this way.
 
@@ -81,7 +81,7 @@ Exporting an image allows you to move that image across data centers, or even to
 
     task = imgs.export_task(img, cont)
 
-In this call, `img` is either an Image object, or the ID of the image to export, and 'cont' is either a pyrax.cloudfiles.Container object, or the name of the Cloud Files container into which the exported image is to be placed.
+In this call, `img` is either an Image object, or the ID of the image to export, and 'cont' is either a pyos.cloudfiles.Container object, or the name of the Cloud Files container into which the exported image is to be placed.
 
 Once you have the task, you may poll its status by calling the following:
 

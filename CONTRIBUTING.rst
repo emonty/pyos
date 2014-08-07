@@ -1,13 +1,13 @@
-We welcome pull requests! Please be sure that *all* pull requests are made
-against the **working** branch of the project, as we reserve the **master**
-branch for full releases.
+To browse the latest code, see: https://git.openstack.org/cgit/stackforge/gertty/tree/
+To clone the latest code, use `git clone git://git.openstack.org/stackforge/gertty`
 
-For style guidelines, please see the HACKING document in the root of this
-repository.
+Bugs are handled at: https://storyboard.openstack.org/
 
-If you find any bugs, or have ideas for improving pyrax, please create an issue
-at:
+Code reviews are handled by gerrit at: https://review.openstack.org
 
-    https://github.com/rackspace/pyrax/issues
+Use `git review` to submit patches (after creating a gerrit account
+that links to your launchpad account). Example::
 
-Thanks!
+    # Do your commits
+    $ git review
+    # Enter your username if prompted

@@ -21,14 +21,14 @@ from __future__ import print_function
 import os
 import sys
 
-import pyrax
-import pyrax.exceptions as exc
+import pyos
+import pyos.exceptions as exc
 
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-dns = pyrax.cloud_dns
+pyos.set_credential_file(creds_file)
+dns = pyos.cloud_dns
 
 domain_name = "abc.example.edu"
 try:

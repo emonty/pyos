@@ -10,10 +10,10 @@ One potential source of confusion is the use of 'database' in multiple contexts.
 To keep these concepts clear, the term 'database' by itself always refers to the relational entity in an instance. When referring to the overall service, the term 'Cloud Databases' is used.
 
 
-## Using Cloud Databases in pyrax
-Once you have authenticated and connected to the database service, you can reference the database module via `pyrax.cloud_databases`. That is a lot to type over and over in your code, so it is easier if you include the following line at the beginning of your code:
+## Using Cloud Databases in pyos
+Once you have authenticated and connected to the database service, you can reference the database module via `pyos.cloud_databases`. That is a lot to type over and over in your code, so it is easier if you include the following line at the beginning of your code:
 
-    cdb = pyrax.cloud_databases
+    cdb = pyos.cloud_databases
 
 Then you can simply use `cdb` to reference the module. All of the code samples in this document assume that `cdb` has been defined this way.
 
@@ -50,7 +50,7 @@ Assuming that you want to create an instance using the smallest flavor and 2GB o
 
 Assuming that all went well, you should see your new instance:
 
-    <CloudDatabaseInstance hostname=a1d5f7312d85f95071ea658d699962b690bd6b60.rackspaceclouddb.com, id=471eff58-66bb-40af-8030-405451e38c02, links=[{u'href': u'https://localhost:8778/v1.0/728829/instances/471eff58-66bb-40af-8030-405451e38c02', u'rel': u'self'}, {u'href': u'https://localhost:8778/instances/471eff58-66bb-40af-8030-405451e38c02', u'rel': u'bookmark'}], name=first_instance, status=BUILD, volume=<pyrax.clouddatabases.CloudDatabaseVolume object at 0x104f73590>>
+    <CloudDatabaseInstance hostname=a1d5f7312d85f95071ea658d699962b690bd6b60.rackspaceclouddb.com, id=471eff58-66bb-40af-8030-405451e38c02, links=[{u'href': u'https://localhost:8778/v1.0/728829/instances/471eff58-66bb-40af-8030-405451e38c02', u'rel': u'self'}, {u'href': u'https://localhost:8778/instances/471eff58-66bb-40af-8030-405451e38c02', u'rel': u'bookmark'}], name=first_instance, status=BUILD, volume=<pyos.clouddatabases.CloudDatabaseVolume object at 0x104f73590>>
 
 If you are planning on using your Cloud Database instance from one of your Cloud Servers, you need the `hostname` attribute of that instance. In this case, it is `a1d5f7312d85f95071ea658d699962b690bd6b60.rackspaceclouddb.com`. Since this host is not publicly accessible, only Cloud Servers and Cloud Load Balancers within the same region can access this instance.
 
@@ -200,7 +200,7 @@ Note that there is a bug in the underlying Python library for the API that affec
 
     inst.delete("john.doe")
 
-the API actually deletes the user `"john"`, and `"john.doe"` is untouched! The best way to avoid this problem is to ensure that you do not use user names that contain periods. If you must include periods, do not use pyrax or any other cloud API-based tool to delete them. Instead, use any one of the many MySQL admin tools available.
+the API actually deletes the user `"john"`, and `"john.doe"` is untouched! The best way to avoid this problem is to ensure that you do not use user names that contain periods. If you must include periods, do not use pyos or any other cloud API-based tool to delete them. Instead, use any one of the many MySQL admin tools available.
 
 
 

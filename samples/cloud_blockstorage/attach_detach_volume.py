@@ -21,13 +21,13 @@ from __future__ import print_function
 import os
 import sys
 
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cs = pyrax.cloudservers
-cbs = pyrax.cloud_blockstorage
+pyos.set_credential_file(creds_file)
+cs = pyos.cloudservers
+cbs = pyos.cloud_blockstorage
 
 try:
     server = cs.servers.find(name="sample_server")
@@ -44,7 +44,7 @@ except cs.exceptions.NotFound as e:
         print("Creating the server...")
         server = cs.servers.create("sample_server", ubu_image.id, flavor_1GB.id)
         print("Server created; waiting for it to become active...")
-        pyrax.utils.wait_until(server, "status", "ACTIVE", attempts=0,
+        pyos.utils.wait_until(server, "status", "ACTIVE", attempts=0,
                 verbose=True)
     else:
         sys.exit()
@@ -55,7 +55,7 @@ print("New volume:", vol.name)
 print("Attaching to:", server)
 print("It may take several seconds for the attachment to complete.")
 vol.attach_to_instance(server, mountpoint="/dev/xvdd")
-pyrax.utils.wait_until(vol, "status", "in-use", interval=3, attempts=0,
+pyos.utils.wait_until(vol, "status", "in-use", interval=3, attempts=0,
         verbose=True)
 print("Volume attachments:", vol.attachments)
 
@@ -63,7 +63,7 @@ print("Volume attachments:", vol.attachments)
 print()
 print("Detaching the volume...")
 vol.detach()
-pyrax.utils.wait_until(vol, "status", "available", interval=3, attempts=0,
+pyos.utils.wait_until(vol, "status", "available", interval=3, attempts=0,
         verbose=True)
 print("Attachments:", vol.attachments)
 

@@ -13,8 +13,8 @@ if sys.version < "2.2.3":
 
 # Workaround for problems caused by this import
 # It's either this or hardcoding the version.
-#from pyrax.version import version
-with open("pyrax/version.py", "rt") as vfile:
+#from pyos.version import version
+with open("pyos/version.py", "rt") as vfile:
     version_text = vfile.read()
 vmatch = re.search(r'version ?= ?"(.+)"$', version_text)
 version = vmatch.groups()[0]
@@ -25,7 +25,7 @@ version = vmatch.groups()[0]
 release = '0'
 
 class sdist(_sdist):
-    """ custom sdist command, to prep pyrax.spec file """
+    """ custom sdist command, to prep pyos.spec file """
 
     def run(self):
         global version
@@ -38,9 +38,9 @@ class sdist(_sdist):
         date = time.strftime("%Y%m%d%H%M%S", time.gmtime())
         git_release = "%sgit%s" % (date, git_head)
 
-        # Expand macros in pyrax.spec.in
-        spec_in = open('pyrax.spec.in', 'r')
-        spec = open('pyrax.spec', 'w')
+        # Expand macros in pyos.spec.in
+        spec_in = open('pyos.spec.in', 'r')
+        spec = open('pyos.spec', 'w')
         for line in spec_in.xreadlines():
             if "@VERSION@" in line:
                 line = line.replace("@VERSION@", version)
@@ -59,13 +59,13 @@ class sdist(_sdist):
 testing_requires = ["mock"]
 
 setup(
-    name="pyrax",
+    name="pyos",
     version=version,
     description="Python language bindings for OpenStack Clouds.",
     author="Rackspace",
     author_email="ed.leafe@rackspace.com",
-    url="https://github.com/rackspace/pyrax",
-    keywords="pyrax rackspace cloud openstack",
+    url="https://github.com/rackspace/pyos",
+    keywords="pyos rackspace cloud openstack",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: Apache Software License",
@@ -79,8 +79,8 @@ setup(
         "six>=1.5.2",
     ] + testing_requires,
     packages=[
-        "pyrax",
-        "pyrax/identity",
+        "pyos",
+        "pyos/identity",
     ],
     cmdclass = {'sdist': sdist}
 )

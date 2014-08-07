@@ -19,17 +19,17 @@
 from __future__ import print_function
 
 import os
-import pyrax
-import pyrax.exceptions as exc
+import pyos
+import pyos.exceptions as exc
 
 
 print("Sorry, this hasn't been implemented yet.")
 exit()
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-pq = pyrax.queues
+pyos.set_credential_file(creds_file)
+pq = pyos.queues
 
 queues = pq.list()
 if not queues:

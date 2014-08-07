@@ -19,13 +19,13 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-imgs = pyrax.images
-cf = pyrax.cloudfiles
+pyos.set_credential_file(creds_file)
+imgs = pyos.images
+cf = pyos.cloudfiles
 
 print("You will need to select an image to export, and a Container into which "
         "the exported image will be placed.")
@@ -71,5 +71,5 @@ print()
 answer = raw_input("Do you want to track the task until completion? This may "
         "take several minutes. [y/N]: ")
 if answer and answer[0].lower() == "y":
-    pyrax.utils.wait_until(task, "status", ["success", "failure"],
+    pyos.utils.wait_until(task, "status", ["success", "failure"],
             verbose=True, interval=30)

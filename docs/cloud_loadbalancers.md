@@ -4,13 +4,13 @@
 Load balancers allow you to distribute workloads among several cloud devices, referred to as 'nodes'. External clients access the services on these nodes via a 'Virtual IP', which is an address on the load balancer for that service.
 
 
-## Load Balancers in pyrax
-Once you have authenticated and connected to the load balancer service, you can reference the load balancer module via `pyrax.cloud_loadbalancers`. This provides general load balancer information for the account, as well as methods for interacting with load balancer instances.
+## Load Balancers in pyos
+Once you have authenticated and connected to the load balancer service, you can reference the load balancer module via `pyos.cloud_loadbalancers`. This provides general load balancer information for the account, as well as methods for interacting with load balancer instances.
 
 For the sake of brevity and convenience, it is common to define abbreviated aliases for the modules. All the code in the document assumes that at the top of your script, you have added the following lines:
 
-    clb = pyrax.cloud_loadbalancers
-    cs = pyrax.cloudservers
+    clb = pyos.cloud_loadbalancers
+    cs = pyos.cloudservers
 
 
 ## Listing Existing Load Balancers
@@ -248,7 +248,7 @@ You can also call the module itself, passing in the load balancer reference, whi
     # the same internal network as your load balancer.
     new_node = clb.Node(address="10.177.1.2", port=80, condition="ENABLED")
     lb.add_nodes([new_node])
-    pyrax.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30, verbose=True)
+    pyos.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30, verbose=True)
 
     print
     print "After adding node:", lb.nodes
@@ -261,7 +261,7 @@ You can also call the module itself, passing in the load balancer reference, whi
     print
     print "Added Node:", added_node
     added_node.delete()
-    pyrax.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30, verbose=True)    print
+    pyos.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30, verbose=True)    print
     print "After removing node:", lb.nodes
 
 Note the `wait_until()` method. After modifying a load balancer, its status is set to `PENDING_UPDATE`. While it is in that status, no further changes can be made. Once the changes have completed, the status is set back to `ACTIVE`. All that `wait_until()` does is loop until the load balancer is ready. It is a convenient routine for processes that require intermediate steps that must complete before the next step is taken.

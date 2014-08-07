@@ -19,13 +19,13 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cbs = pyrax.cloud_blockstorage
-vol_name = pyrax.utils.random_ascii(length=8)
+pyos.set_credential_file(creds_file)
+cbs = pyos.cloud_blockstorage
+vol_name = pyos.utils.random_ascii(length=8)
 
 sata_vol = cbs.create(name="my_standard_volume", size=500, volume_type="SATA")
 ssd_vol = cbs.create(name="my_fast_volume", size=500, volume_type="SSD")

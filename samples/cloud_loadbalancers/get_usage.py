@@ -21,12 +21,12 @@ from __future__ import print_function
 import datetime
 import os
 
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-clb = pyrax.cloud_loadbalancers
+pyos.set_credential_file(creds_file)
+clb = pyos.cloud_loadbalancers
 
 # Get load balancer usage
 usage = clb.get_usage()

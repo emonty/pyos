@@ -19,12 +19,12 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-imgs = pyrax.images
+pyos.set_credential_file(creds_file)
+imgs = pyos.images
 
 print("This will loop through all current tasks.")
 tasks = imgs.list_tasks()

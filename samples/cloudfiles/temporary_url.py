@@ -22,17 +22,17 @@ import os
 import requests
 import time
 
-import pyrax
-import pyrax.exceptions as exc
+import pyos
+import pyos.exceptions as exc
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cf = pyrax.cloudfiles
+pyos.set_credential_file(creds_file)
+cf = pyos.cloudfiles
 
-cont_name = pyrax.utils.random_ascii(8)
+cont_name = pyos.utils.random_ascii(8)
 cont = cf.create_container(cont_name)
-oname = pyrax.utils.random_ascii(8)
+oname = pyos.utils.random_ascii(8)
 ipsum = """Import integration functools test dunder object explicit. Method
 integration mercurial unit import. Future integration decorator pypy method
 tuple unit pycon. Django raspberrypi mercurial 2to3 cython scipy. Cython

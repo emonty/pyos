@@ -22,12 +22,12 @@ import getpass
 import os
 import sys
 
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cdb = pyrax.cloud_databases
+pyos.set_credential_file(creds_file)
+cdb = pyos.cloud_databases
 
 instances = cdb.list()
 if not instances:

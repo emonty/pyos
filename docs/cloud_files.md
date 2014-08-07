@@ -5,14 +5,14 @@
 ## Basic Concepts
 Rackspace Cloud Files allows you to store files in a scalable, redundant manner, and optionally make them available globally using the Akamai CDN network. Unlike a typical computer OS, though, Cloud Files consists of containers, each of which can store millions of objects. But unlike directories on your computer, you cannot nest containers within other containers: they exist only at the root level. However, you can simulate a nested folder structure by naming your objects with names that resemble traditional path notation; for example: "photos/vacations/2012/cancun/beach.jpg". So while all your files are at the base level of their containers, you can retrieve them based on the "path" prefix.
 
-In pyrax, Cloud Files is represented by `Container` and `StorageObject` classes. Once you're authenticated with pyrax, you can interact with Cloud Files via the `pyrax.cloudfiles` object. All of the example code that follows assumes that you have already imported pyrax and authenticated.
+In pyos, Cloud Files is represented by `Container` and `StorageObject` classes. Once you're authenticated with pyos, you can interact with Cloud Files via the `pyos.cloudfiles` object. All of the example code that follows assumes that you have already imported pyos and authenticated.
 
-All of the code samples in this document assume that you have already imported pyrax, authenticated, and created the name `cf` at the top of the script, like this:
+All of the code samples in this document assume that you have already imported pyos, authenticated, and created the name `cf` at the top of the script, like this:
 
-    import pyrax
-    pyrax.set_credential_file("my_cred_file")
+    import pyos
+    pyos.set_credential_file("my_cred_file")
     # or any other auth method
-    cf = pyrax.cloudfiles
+    cf = pyos.cloudfiles
 
 
 ## General Account Information
@@ -56,7 +56,7 @@ Please note that if you call `create_container()` more than once with the same n
 
 
 ## Listing All Containers
-You can also query `pyrax.cloudfiles` for all the containers on the system. There are two methods for this: `list_containers()` and `get_all_containers()`. The difference between these methods is that `list_containers()` returns a list of the *names* of all containers, while `get_all_containers()` returns a list of `Container` *objects* representing each container:
+You can also query `pyos.cloudfiles` for all the containers on the system. There are two methods for this: `list_containers()` and `get_all_containers()`. The difference between these methods is that `list_containers()` returns a list of the *names* of all containers, while `get_all_containers()` returns a list of `Container` *objects* representing each container:
 
     print "list_containers:", cf.list_containers()
     print "get_all_containers:", cf.get_all_containers()
@@ -87,9 +87,9 @@ Note that if there is no existing container with the name you specify, a `NoSuch
 
 
 ## [Storing Objects in Cloud Files](id:uploadfiles)
-There are two primary options for getting your objects into Cloud Files: passing the content directly, or passing in a file-like object reference. In the latter case, pyrax reads the content to be stored from the object. The two methods for this are `store_object()` and `upload_file()`, respectively.
+There are two primary options for getting your objects into Cloud Files: passing the content directly, or passing in a file-like object reference. In the latter case, pyos reads the content to be stored from the object. The two methods for this are `store_object()` and `upload_file()`, respectively.
 
-You also have two options for specifying the container in which the object should be stored. If you already have the `Container` object, you can call either of those methods directly on the `Container`, and the object is stored in the corresponding container. You can also pass the name of the container to pyrax.cloudfiles, and the container with that name is chosen to store the object. If there is no container by that name, a `NoSuchContainer` exception is raised.
+You also have two options for specifying the container in which the object should be stored. If you already have the `Container` object, you can call either of those methods directly on the `Container`, and the object is stored in the corresponding container. You can also pass the name of the container to pyos.cloudfiles, and the container with that name is chosen to store the object. If there is no container by that name, a `NoSuchContainer` exception is raised.
 
 Both methods take several optional parameters:
 
@@ -99,7 +99,7 @@ Both methods take several optional parameters:
 
 As an example, start with the simplest scenario: storing some text as an object. The example below assumes that the 'example' container we created earlier still exists; if not, make sure you create it before running this code.
 
-The example creates some simple content: a single text sentence stored in the variable name `content`. It then tells `pyrax.cloudfiles` to store that content into the container named `example`, and give that stored object the name `new_object.txt`.
+The example creates some simple content: a single text sentence stored in the variable name `content`. It then tells `pyos.cloudfiles` to store that content into the container named `example`, and give that stored object the name `new_object.txt`.
 
     content = "This is the content of the file."
     obj = cf.store_object("example", "new_object.txt", content)
@@ -109,10 +109,10 @@ When an object is successfully created, you receive a `StorageObject` instance r
 
 One common issue when storing objects is ensuring that the object did not get changed or corrupted in the process. In other words, ensuring that the object that is stored is exactly what you uploaded. `StorageObject` instances have an `etag` attribute that is the MD5 checksum of the file as it exists on Cloud Files. You can run a checksum on your local copy to see if the two values match; if they do, the file was stored intact. However, if you're concerned about integrity, you can compute the MD5 checksum of your file before uploading, and then pass that value in the `etag` parameter of `store_object()` or `upload_file()`, and Cloud Files checks to make sure that its generated checksum matches your supplied etag. If the two don't match, the file is not stored in Cloud Files, and an `UploadFailed` exception is raised.
 
-To make this a simpler process, pyrax includes a utility method for calculating the MD5 checksum; it accepts either raw text or a file-like object. So try this again, this time sending the checksum as the `etag` parameter:
+To make this a simpler process, pyos includes a utility method for calculating the MD5 checksum; it accepts either raw text or a file-like object. So try this again, this time sending the checksum as the `etag` parameter:
 
     text = "This is a random collection of words."
-    chksum = pyrax.utils.get_checksum(text)
+    chksum = pyos.utils.get_checksum(text)
     obj = cf.store_object("example", "new_object.txt",
             text, etag=chksum)
     print "Calculated checksum:", chksum
@@ -124,15 +124,15 @@ If you have a `Container` object, you can call `store_object()` directly on it t
 
     cont = cf.get_container("example")
     text = "This is a random collection of words."
-    chksum = pyrax.utils.get_checksum(text)
+    chksum = pyos.utils.get_checksum(text)
     obj = cont.store_object("new_object.txt", text, etag=chksum)
     print "Calculated checksum:", chksum
     print "Stored object etag:", obj.etag
 
-Most of the time, though, you won't have raw text in your code to store; the more likely situation is that you want to store files that exist on your computer into Cloud Files. The way to do that is essentially the same, except that you call `upload_file()`, and pass the full path to the file you want to upload. Additionally, specifying the object's name is optional, since pyrax uses the name of the file as the stored object name by default. `upload_file()` accepts the same `etag` parameter that `store_object()` does, and etag verification works the same way.
+Most of the time, though, you won't have raw text in your code to store; the more likely situation is that you want to store files that exist on your computer into Cloud Files. The way to do that is essentially the same, except that you call `upload_file()`, and pass the full path to the file you want to upload. Additionally, specifying the object's name is optional, since pyos uses the name of the file as the stored object name by default. `upload_file()` accepts the same `etag` parameter that `store_object()` does, and etag verification works the same way.
 
     pth = "/home/me/path/to/myfile.txt"
-    chksum = pyrax.utils.get_checksum(pth)
+    chksum = pyos.utils.get_checksum(pth)
     obj = cf.upload_file("example", pth, etag=chksum)
     print "Calculated checksum:", chksum
     print "Stored object etag:", obj.etag
@@ -143,7 +143,7 @@ Note that (currently) both `store_object()` and `upload_file()` run synchronousl
 
 
 ## Retrieving (Downloading) Stored Objects
-As with most operations on objects, there are 3 ways to do this. If you have a `StorageObject` reference for the object you want to download, just call its `fetch()` method. If you have the `Container` object that holds the stored object, call its `fetch_object()` method, passing in the name of the object to fetch. Finally, you can call the `pyrax.cloudfiles.fetch_object()` method, passing in the container and object names.
+As with most operations on objects, there are 3 ways to do this. If you have a `StorageObject` reference for the object you want to download, just call its `fetch()` method. If you have the `Container` object that holds the stored object, call its `fetch_object()` method, passing in the name of the object to fetch. Finally, you can call the `pyos.cloudfiles.fetch_object()` method, passing in the container and object names.
 
 All 3 take the same optional parameters:
 
@@ -203,17 +203,17 @@ Since Cloud Files does not have a hierachical folder structure, you can simulate
 
 …you would typically create a container named 'base', and when uploading the file 'three.txt', you would give it the name 'one/two/three.txt'. There really isn't any such structure inside that container, but it helps you to track the relation of files to their original directory structure.
 
-When you retieve the file from Cloud Files, it's helpful to retain that structure on your disk. Like the other methods, there are three ways to do this. If you have a `StorageObject` reference for the object you want to download, just call its `download()` method. If you have the `Container` object that holds the stored object, call its `downlod_object()` method, passing in the name of the object to fetch. Finally, you can call the `pyrax.cloudfiles.download_object()` method, passing in the container and object names. On all three, you also need to pass in the full path to the local directory in which the file is written. That directory must exist on your disk before you attempt to download files to it.
+When you retieve the file from Cloud Files, it's helpful to retain that structure on your disk. Like the other methods, there are three ways to do this. If you have a `StorageObject` reference for the object you want to download, just call its `download()` method. If you have the `Container` object that holds the stored object, call its `downlod_object()` method, passing in the name of the object to fetch. Finally, you can call the `pyos.cloudfiles.download_object()` method, passing in the container and object names. On all three, you also need to pass in the full path to the local directory in which the file is written. That directory must exist on your disk before you attempt to download files to it.
 
 These commands take an optional parameter named `structure`. When `True` (the default if omitted), the folder structure of your object name is recreated on your disk. If for any reason you don't want this done, simply set this to `False`, and the objects are all stored in the same base directory without any regard to any paths in their names.
 
 
 ## Uploading an Entire Folder to Cloud Files
-A very common use case is needing to upload an entire folder, including subfolders, to a Cloud Files container. Because this is so common, pyrax includes an `upload_folder()` method. You pass in the path to the folder you want to upload, and it handles the rest in the background. If you specify the name of a container in your request, the folder contents is uploaded to that container. If you don't specify a container name, a new container with the same name as the folder you are uploading is created, and the objects stored in there.
+A very common use case is needing to upload an entire folder, including subfolders, to a Cloud Files container. Because this is so common, pyos includes an `upload_folder()` method. You pass in the path to the folder you want to upload, and it handles the rest in the background. If you specify the name of a container in your request, the folder contents is uploaded to that container. If you don't specify a container name, a new container with the same name as the folder you are uploading is created, and the objects stored in there.
 
-You can also specify one or more file name patterns to ignore, and pyrax skips any of the files that match any of the patterns. This is useful if there are files that you don't wish to retain, such as .pyc and .pyo files in a Python project. You can pass either a single string pattern, or a list of strings to use.
+You can also specify one or more file name patterns to ignore, and pyos skips any of the files that match any of the patterns. This is useful if there are files that you don't wish to retain, such as .pyc and .pyo files in a Python project. You can pass either a single string pattern, or a list of strings to use.
 
-`upload_folder()` accepts the same optional parameters as `upload_file()`: `content_type`, `content_encoding`, and `ttl`. See the section on [Storing Objects in Cloud Files](#uploadfiles) for an explanation of these parameters. Calling `upload_folder()` returns a 2-tuple: the key for the upload process, and the total bytes to be uploaded. You can use the key to query `pyrax.cloudfiles` for the status of the upload, or to cancel it if necessary.
+`upload_folder()` accepts the same optional parameters as `upload_file()`: `content_type`, `content_encoding`, and `ttl`. See the section on [Storing Objects in Cloud Files](#uploadfiles) for an explanation of these parameters. Calling `upload_folder()` returns a 2-tuple: the key for the upload process, and the total bytes to be uploaded. You can use the key to query `pyos.cloudfiles` for the status of the upload, or to cancel it if necessary.
 
 Here are some examples, using the local folder **"/home/me/projects/cool_project/"**:
 
@@ -237,7 +237,7 @@ Here are some examples, using the local folder **"/home/me/projects/cool_project
 
 
 ### Monitoring Folder Uploads
-Since a folder upload can take a while, the uploading happens in a background thread. If you'd like to follow the progress of the upload, you can call `pyrax.cloudfiles.get_uploaded(upload_key)` to get the current number of bytes uploaded for this process. Combined with the total number of bytes returned by the initial call to `upload_folder()`, it is simple to calculate the percentage of the upload that has completed.
+Since a folder upload can take a while, the uploading happens in a background thread. If you'd like to follow the progress of the upload, you can call `pyos.cloudfiles.get_uploaded(upload_key)` to get the current number of bytes uploaded for this process. Combined with the total number of bytes returned by the initial call to `upload_folder()`, it is simple to calculate the percentage of the upload that has completed.
 
 
 ### Interrupting Folder Uploads
@@ -245,7 +245,7 @@ Sometimes it is necessary to stop a folder upload before it has completed. To do
 
 
 ## Syncing a Local Folder with a Container
-Another common use case is to use Cloud Files as a backup of the important files on your local machine. `pyrax` provides the `sync_folder_to_container()` method that makes this straightforward. It takes the following parameters:
+Another common use case is to use Cloud Files as a backup of the important files on your local machine. `pyos` provides the `sync_folder_to_container()` method that makes this straightforward. It takes the following parameters:
 
 Parameter | Required? | Description | Default
 ---- | ---- | ---- | ---- 
@@ -344,7 +344,7 @@ This excludes all the objects in the nested 'stuff' folder:
 ## Deleting Objects
 There are several ways to delete an object from Cloud Files.
 
-If you have the associated `StorageObject` instance for that object, just call its `obj.delete()` method. If you have the `Container` object, you can call its `cont.delete_object(obj_name)` method, passing in the object name. You can also call `pyrax.cloudfiles.delete_object(cont_name, obj_name)`, passing in the container and object names. Finally, if you want to delete all the objects in a container, just call the `container.delete_all_objects()` method.
+If you have the associated `StorageObject` instance for that object, just call its `obj.delete()` method. If you have the `Container` object, you can call its `cont.delete_object(obj_name)` method, passing in the object name. You can also call `pyos.cloudfiles.delete_object(cont_name, obj_name)`, passing in the container and object names. Finally, if you want to delete all the objects in a container, just call the `container.delete_all_objects()` method.
 
 Note that these methods are asynchronous and return almost immediately. They do not wait until the object has actually been deleted, so there may be a period of several seconds where the object still shows up in the container. Do not interpret the presence of the object in the container soon after deleting it as a sign that the deletion failed.
 
@@ -407,7 +407,7 @@ Both methods take the parameters: `container, obj_name, new_container, new_obj_n
 
 
 ## Metadata for Containers and Objects
-Cloud Files allows you to set and retrieve arbitrary metadata on containers and storage objects. Metadata are simple key/value pairs, with both key and value being strings. Keys are case-insensitive, and are always returned in lowercase. The content of the metadata can be anything that is useful to you. The only requirement is that the keys begin with "X-Container-Meta-" and "X-Object-Meta-", respectively, for containers and storage objects. However, to make things easy for you, pyrax automatically prefixes your metadata headers with those strings if they aren't already present.
+Cloud Files allows you to set and retrieve arbitrary metadata on containers and storage objects. Metadata are simple key/value pairs, with both key and value being strings. Keys are case-insensitive, and are always returned in lowercase. The content of the metadata can be anything that is useful to you. The only requirement is that the keys begin with "X-Container-Meta-" and "X-Object-Meta-", respectively, for containers and storage objects. However, to make things easy for you, pyos automatically prefixes your metadata headers with those strings if they aren't already present.
 
     cname = "example"
     cont = cf.create_container(cname)
@@ -419,7 +419,7 @@ Cloud Files allows you to set and retrieve arbitrary metadata on containers and 
 Unless you have explicitly added metadata to this container, you should see it print an empty dict here.
 
     # Create a dict of metadata. Make one key with the required prefix,
-    # and the other without, to illustrate how pyrax 'massages' the keys
+    # and the other without, to illustrate how pyos 'massages' the keys
     # to include the require prefix.
     new_meta = {"X-Account-Meta-City": "Springfield",
             "Famous_Family": "Simpsons"}
@@ -454,7 +454,7 @@ This makes the 'example' container public, and sets the `TTL`, or `Time To Live`
 
 Once a container is made public, you can access its CDN-related properties. You can see this in action by running the following code:
 
-    cont_name = pyrax.utils.random_name()
+    cont_name = pyos.utils.random_name()
     cont = cf.create_container(cont_name)
     print "Before Making Public"
     print "cdn_enabled", cont.cdn_enabled
@@ -547,7 +547,7 @@ Additionally, you need not worry about time running out when someone downloads a
 
 To create a Temporary URL, you must first set a key that only you know. This key can be any arbitrary sequence as it is for encoding your account. Once the key is set, you should not change it while you still want others to be able to access your temporary URL. If you change it, the TempURL becomes invalid (within 60 seconds, which is the cache time for a key) and others will not be allowed to access it.
 
-When setting the key, you can either provide your own value, or let `pyrax` create the key for you by not passing in a value.
+When setting the key, you can either provide your own value, or let `pyos` create the key for you by not passing in a value.
 
     cf.set_temp_url_key()
     # - or -

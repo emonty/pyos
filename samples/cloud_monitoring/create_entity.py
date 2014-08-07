@@ -21,13 +21,13 @@ from __future__ import print_function
 import os
 import sys
 
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cm = pyrax.cloud_monitoring
-cs = pyrax.cloudservers
+pyos.set_credential_file(creds_file)
+cm = pyos.cloud_monitoring
+cs = pyos.cloudservers
 
 # Create an entity based on an existing server
 servers = cs.servers.list()

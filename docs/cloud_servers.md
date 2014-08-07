@@ -2,14 +2,14 @@
 
 ----
 
-*Note: pyrax works with OpenStack-based clouds. Rackspace's "First Generation" servers are based on a different API, and are not supported.*
+*Note: pyos works with OpenStack-based clouds. Rackspace's "First Generation" servers are based on a different API, and are not supported.*
 
 ## Listing Servers
 Start by listing all the servers in your account:
 
-    import pyrax
-    pyrax.set_credential_file("/path/to/credential/file")
-    cs = pyrax.cloudservers
+    import pyos
+    pyos.set_credential_file("/path/to/credential/file")
+    cs = pyos.cloudservers
     print cs.servers.list()
 
 If you already have Cloud Servers, you get back a list of `Server` objects. But if you are just getting started with the Rackspace Cloud, and you got back an empty list, creating a new cloud server would be a good first step.
@@ -207,10 +207,10 @@ This should return something like:
     {u'private': [u'10.179.xxx.xxx'], u'public': [u'198.101.xxx.xxx', u'2001:4800:780d:0509:8ca7:b42c:xxxx:xxxx']}
 
 ### Waiting for Server Completion
-Since you can't do anything with your new server until it finishes building, it would be helpful to have a way of determining when the build is complete. So `pyrax` includes the `wait_until()` method in its `utils` module. Here is a typical usage:
+Since you can't do anything with your new server until it finishes building, it would be helpful to have a way of determining when the build is complete. So `pyos` includes the `wait_until()` method in its `utils` module. Here is a typical usage:
 
     srv = cs.servers.create(…)
-    new_srv = pyrax.utils.wait_until(srv, "status", ["ACTIVE", "ERROR"])
+    new_srv = pyos.utils.wait_until(srv, "status", ["ACTIVE", "ERROR"])
 
 When you run the above code, execution blocks until the server's status reaches one of the two values in the list. Note that we just don't want to check for "ACTIVE" status, since server creation can fail, and the `wait_until()` call waits forever.
 
@@ -230,7 +230,7 @@ Another common use case is when you are creating several servers, and you don't 
 | verbose_atts | No | A list of additional attributes whose values are printed out for each attempt. If `verbose=False`, this parameter has no effect. Default = `None` |
 
 ### Even Easier: `wait_for_build()`
-Since waiting for servers (as well as databases and load balancers) to build is such a common use case, pyrax provides a convenience method that provides the most common default values for `wait_until()`. So assuming that you have a reference `srv` to a newly-created server, you can call:
+Since waiting for servers (as well as databases and load balancers) to build is such a common use case, pyos provides a convenience method that provides the most common default values for `wait_until()`. So assuming that you have a reference `srv` to a newly-created server, you can call:
 
     wait_for_build(srv)
 
@@ -287,13 +287,13 @@ Since each `Server` object has a `delete()` method, it is simple to delete all t
 ## Creating an Image of a Server
 If you have a `Server` object and want to create an image of that server, you can call its `create_image()` method, passing in the name of the image to create, along with any optional metadata for the image.
 
-    cs = pyrax.cloudservers
+    cs = pyos.cloudservers
     server = cs.servers.get(id_of_server)
     server.create_image("my_image_name")
 
-Another option is to use call `pyrax.servers.create_image()`, passing in either the name or the ID of the server from which you want to create the image, along with the image name and optional metadata.
+Another option is to use call `pyos.servers.create_image()`, passing in either the name or the ID of the server from which you want to create the image, along with the image name and optional metadata.
 
-    cs = pyrax.cloudservers
+    cs = pyos.cloudservers
     cs.servers.create_image("my_awesome_server", "my_image_name")
 
 The created image also appears in the list of images with the name you gave it.
@@ -306,7 +306,7 @@ You need to wait for the imaging to finish before you are able to clone it.
     # Unlike the create_server() call, create_image() returns the id
     # rather than an Image object.
     image = cs.images.get(im)
-    image = pyrax.wait_until(image, "status", ["ACTIVE", "ERROR"], attempts=0)
+    image = pyos.wait_until(image, "status", ["ACTIVE", "ERROR"], attempts=0)
     cs.servers.create(name="clone", image=image.id, flavor=my_flavor)
 
 
@@ -318,7 +318,7 @@ Resizing a server is the process of changing the amount of resources allocated t
 ### Resizing Old Flavors
 Resizing is a multi-step process. First, determine the desired `Flavor` to which the server is to be resized. Then call the `resize()` method on the server, passing in the ID of the desired `Flavor`. The server's status is then set to "RESIZE".
 
-    cs = pyrax.cloudservers
+    cs = pyos.cloudservers
     server = cs.servers.get(id_of_server)
     server.resize(new_flavor_ID)
 

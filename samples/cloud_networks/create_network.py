@@ -19,13 +19,13 @@
 from __future__ import print_function
 
 import os
-import pyrax
-from pyrax import utils
+import pyos
+from pyos import utils
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cnw = pyrax.cloud_networks
+pyos.set_credential_file(creds_file)
+cnw = pyos.cloud_networks
 new_network_name = "SAMPLE_NETWORK"
 new_network_cidr = "192.168.0.0/24"
 

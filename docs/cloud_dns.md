@@ -12,37 +12,37 @@ For the purposes of this document, the domain **example.edu** is used. This is n
 **Subdomains** are domains within the parent domain, and are typically used to designate different functions within the domain. Examples of subdomains are `mail.example.edu` (for handling email activity), `www.example.edu` (web traffic), and `ftp.example.edu` (FTP traffic). Subdomains can be further broken down into sub-subdomains to suit the needs of the site, for example `main.ftp.example.edu` and `secondary.ftp.example.edu`.
 
 
-## Cloud DNS in pyrax
-Once you have authenticated and connected to the Cloud DNS service, you can reference the DNS module via `pyrax.cloud_dns`. This module provides methods for managing your DNS entries for the cloud.
+## Cloud DNS in pyos
+Once you have authenticated and connected to the Cloud DNS service, you can reference the DNS module via `pyos.cloud_dns`. This module provides methods for managing your DNS entries for the cloud.
 
-All of the code samples in this document assume that you have already imported `pyrax`, authenticated, and created the name `dns` at the top of the script, like this:
+All of the code samples in this document assume that you have already imported `pyos`, authenticated, and created the name `dns` at the top of the script, like this:
 
-    import pyrax
-    pyrax.settings.set('identity_type', 'rackspace')
-    pyrax.set_credential_file("my_cred_file")
+    import pyos
+    pyos.settings.set('identity_type', 'rackspace')
+    pyos.set_credential_file("my_cred_file")
     # or
-    # pyrax.set_credentials("my_username", "my_api_key")
-    dns = pyrax.cloud_dns
+    # pyos.set_credentials("my_username", "my_api_key")
+    dns = pyos.cloud_dns
 
 
 ## Response Timeouts
 Many API calls in Cloud DNS do not wait to complete before returning; instead, they return immediately with a URI that can be used to get updates on the request. This is done because the API server has to communicate with the DNS servers, and that can take a while sometimes.
 
-This is generally of no concern to a developer, as the calls almost always complete within less than a second, so `pyrax` handles the checking of the status update of a call for you, and when complete, returns the final results. By default, `pyrax` waits for up to 5 seconds for the call to complete; if it has not completed by then, a `DNSCallTimedOut` exception is raised.
+This is generally of no concern to a developer, as the calls almost always complete within less than a second, so `pyos` handles the checking of the status update of a call for you, and when complete, returns the final results. By default, `pyos` waits for up to 5 seconds for the call to complete; if it has not completed by then, a `DNSCallTimedOut` exception is raised.
 
 If you need to change that timeout period from the default, make the following call:
 
     dns.set_timeout(new_time)
 
-The value of `new_time` is in seconds. You can tell `pyrax` to wait indefinitely for the call to complete by passing zero to `set_timeout()`:
+The value of `new_time` is in seconds. You can tell `pyos` to wait indefinitely for the call to complete by passing zero to `set_timeout()`:
 
     dns.set_timeout(0)
 
-By default, `pyrax` pauses for 0.5 seconds in between each check of the async call to see if it has completed. This helps to avoid rate limits by not checking continuously. You can adjust this if you want a different delay interval by calling:
+By default, `pyos` pauses for 0.5 seconds in between each check of the async call to see if it has completed. This helps to avoid rate limits by not checking continuously. You can adjust this if you want a different delay interval by calling:
 
     dns.set_delay(2.2)
 
-The call above causes `pyrax` to wait 2.2 seconds in between calls to check if an async API call has completed.
+The call above causes `pyos` to wait 2.2 seconds in between calls to check if an async API call has completed.
 
 
 ## Listing Domains
@@ -58,7 +58,7 @@ You could have hundreds of domains, and by default the `list()` method returns o
 
 The `limit` parameter determines how many records are returned, and must be a value between 1 and 100. If no `limit` is passed, a value of 100 is used. The `offset` parameter determines where in the listing to begin when fetching. The value of `offset` defaults to 0 if not specified. Additionally, the value of `offset` must be either zero or a multiple of the limit. Together they enable paging across all of your domains.
 
-To make things easier, `pyrax` offers two convenience methods: `list_previous_page()` and `list_next_page()` for traversing your domain records. After the initial call to `list()`, you can then navigate through the pages of results with these methods. Each raises a `NoMoreResults` exception when there are no additional pages of results to fetch. For example, assume that there are 15 domain records, and you want to show them in pages of up to 4 at a time. This code does that for you:
+To make things easier, `pyos` offers two convenience methods: `list_previous_page()` and `list_next_page()` for traversing your domain records. After the initial call to `list()`, you can then navigate through the pages of results with these methods. Each raises a `NoMoreResults` exception when there are no additional pages of results to fetch. For example, assume that there are 15 domain records, and you want to show them in pages of up to 4 at a time. This code does that for you:
 
     domains = dns.list(limit=4)
     print domains
@@ -66,14 +66,14 @@ To make things easier, `pyrax` offers two convenience methods: `list_previous_pa
         try:
             domains = dns.list_next_page()
             print domains
-        except pyrax.exceptions.NoMoreResults:
+        except pyos.exceptions.NoMoreResults:
             break
 
 The same approach of using `offset` and `limit` works with subdomains, records, and PTR records. The methods for the next and previous page of results have similar names, which are noted in their respective sections below.
 
 
 ### Iterators
-To make working with large numbers of domains simpler, `pyrax` provides the `get_domain_iterator()` method. This returns an iterable object that handles the paging requests for you, so you can treat them as a single request. For this example, assume that you have 250 domains named from 'example001.edu' to 'example250.edu'. Instead of the multiple commands you would need to use as in the example above, you can iterate through them in a single command:
+To make working with large numbers of domains simpler, `pyos` provides the `get_domain_iterator()` method. This returns an iterable object that handles the paging requests for you, so you can treat them as a single request. For this example, assume that you have 250 domains named from 'example001.edu' to 'example250.edu'. Instead of the multiple commands you would need to use as in the example above, you can iterate through them in a single command:
 
     for domain in dns.get_domain_iterator():
         print domain.name
@@ -255,7 +255,7 @@ Consider a situation where you need to create the `example.edu` domain, along wi
             comment="Final sample subdomain", emailAddress="sample@rackspace.edu")
 
 
-That's a total of 7 separate calls to the server. Actually, some of these calls are done asynchronously, and require several callbacks to determine if the calls succeeded, which `pyrax` handles for you, so the total number of API calls is actually much higher.
+That's a total of 7 separate calls to the server. Actually, some of these calls are done asynchronously, and require several callbacks to determine if the calls succeeded, which `pyos` handles for you, so the total number of API calls is actually much higher.
 
 By preparing the record and subdomain information ahead of time, the process can be made much more efficient, by requiring only a single `create()` call:
 
@@ -387,7 +387,7 @@ To add PTR records for a device, you call the `dns.add_ptr_records()` method, pa
             "data": "2001:db8::7",
             "ttl": 7200}
             ]
-    server = pyrax.cloudservers.servers.get(id_of_server)
+    server = pyos.cloudservers.servers.get(id_of_server)
     dns.add_ptr_records(server, recs)
 
 The following table lists both the required and optional keys for a PTR record:
@@ -415,14 +415,14 @@ comment | If included, its length must be less than or equal to 160 characters. 
 
 The following example shows how to change the TTL of a server whose domain name is "example.edu":
 
-    server = pyrax.cloudservers.servers.get(id_of_server)
+    server = pyos.cloudservers.servers.get(id_of_server)
     dns.update_ptr_record(server, "example.edu", "1.2.3.4", ttl=9600)
 
 
 ## Deleting PTR Records
 You may delete one or all of the PTR records for a given device by calling the `delete_ptr_records()` method and passing in the device reference. All PTR records for a device are deleted if you pass only the device reference. However, if you specify an IP address, only the record for that address is deleted.
 
-    server = pyrax.cloudservers.servers.get(id_of_server)
+    server = pyos.cloudservers.servers.get(id_of_server)
     # To delete just one PTR record:
     dns.delete_ptr_records(server, ip_address="1.2.3.4")
     # To delete all PTR records for the device:

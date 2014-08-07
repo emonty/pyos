@@ -23,14 +23,14 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.pardir))
 
-import pyrax
+import pyos
 
 from util import option_chooser
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cm = pyrax.cloud_monitoring
+pyos.set_credential_file(creds_file)
+cm = pyos.cloud_monitoring
 
 # We need the IP address of the entity for this check
 ents = cm.list_entities()

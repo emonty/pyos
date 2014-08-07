@@ -21,15 +21,15 @@ from __future__ import print_function
 import os
 import time
 
-import pyrax
-import pyrax.exceptions as exc
+import pyos
+import pyos.exceptions as exc
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cf = pyrax.cloudfiles
+pyos.set_credential_file(creds_file)
+cf = pyos.cloudfiles
 
-cont_name = pyrax.utils.random_ascii()
+cont_name = pyos.utils.random_ascii()
 cont = cf.create_container(cont_name)
 print("Container:", cont
 )
@@ -38,7 +38,7 @@ meta = cf.get_container_metadata(cont)
 print("Initial metadata:", meta
 )
 # Create a dict of metadata. Make one key with the required prefix,
-# and the other without, to illustrate how pyrax will 'massage'
+# and the other without, to illustrate how pyos will 'massage'
 # the keys to include the require prefix.
 new_meta = {"X-Container-Meta-City": "Springfield",
         "Famous_Family": "Simpsons"}

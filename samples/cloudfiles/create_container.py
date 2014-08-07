@@ -19,14 +19,14 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cf = pyrax.cloudfiles
+pyos.set_credential_file(creds_file)
+cf = pyos.cloudfiles
 
-cont_name = pyrax.utils.random_ascii(8)
+cont_name = pyos.utils.random_ascii(8)
 print("Creating container with random name:", cont_name)
 cont = cf.create_container(cont_name)
 print("New Container")

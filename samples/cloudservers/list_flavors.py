@@ -19,12 +19,12 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cs = pyrax.cloudservers
+pyos.set_credential_file(creds_file)
+cs = pyos.cloudservers
 
 flvs = cs.list_flavors()
 for flv in flvs:

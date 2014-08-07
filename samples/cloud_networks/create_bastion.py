@@ -21,15 +21,15 @@ from __future__ import print_function
 from pprint import pprint
 import os
 
-import pyrax
-from pyrax import utils
+import pyos
+from pyos import utils
 
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cs = pyrax.cloudservers
-cnw = pyrax.cloud_networks
+pyos.set_credential_file(creds_file)
+cs = pyos.cloudservers
+cnw = pyos.cloud_networks
 new_network_name = "SAMPLE_NETWORK"
 new_network_cidr = "192.168.0.0/24"
 
@@ -62,9 +62,9 @@ if answer not in "yY":
 
 bas_id = bastion.id
 iso_id = isolated.id
-pyrax.utils.wait_until(bastion, "status", ("ERROR", "ACTIVE"), attempts=0,
+pyos.utils.wait_until(bastion, "status", ("ERROR", "ACTIVE"), attempts=0,
         interval=10, verbose=True)
-pyrax.utils.wait_until(isolated, "status", ("ERROR", "ACTIVE"), attempts=0,
+pyos.utils.wait_until(isolated, "status", ("ERROR", "ACTIVE"), attempts=0,
         interval=10, verbose=True)
 # Refresh the objects with the latest values of the servers.
 bastion = cs.servers.get(bas_id)

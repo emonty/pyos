@@ -20,22 +20,22 @@ from __future__ import print_function
 
 import os
 
-import pyrax
-import pyrax.exceptions as exc
-import pyrax.utils as utils
+import pyos
+import pyos.exceptions as exc
+import pyos.utils as utils
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cf = pyrax.cloudfiles
+pyos.set_credential_file(creds_file)
+cf = pyos.cloudfiles
 
-cont_name = pyrax.utils.random_ascii(8)
+cont_name = pyos.utils.random_ascii(8)
 cont = cf.create_container(cont_name)
 
 text = """First Line
     Indented Second Line
 Last Line"""
-# pyrax has a utility for creating temporary local files that clean themselves up.
+# pyos has a utility for creating temporary local files that clean themselves up.
 with utils.SelfDeletingTempfile() as tmpname:
     print("Creating text file with the following content:")
     print("-" * 44)

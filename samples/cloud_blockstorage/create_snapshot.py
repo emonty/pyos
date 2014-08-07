@@ -21,14 +21,14 @@ from __future__ import print_function
 import os
 import sys
 
-import pyrax
-import pyrax.exceptions as exc
+import pyos
+import pyos.exceptions as exc
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-cbs = pyrax.cloud_blockstorage
-vol_name = pyrax.utils.random_ascii(length=8)
+pyos.set_credential_file(creds_file)
+cbs = pyos.cloud_blockstorage
+vol_name = pyos.utils.random_ascii(length=8)
 vol = cbs.create(name="sample_volume", size=500, volume_type="SATA")
 
 snap = vol.create_snapshot("sample_snap")
@@ -39,7 +39,7 @@ print()
 print("You have to wait until the snapshot finishes being created before")
 print("it can be deleted. Press Ctrl-C to interrupt.")
 try:
-    pyrax.utils.wait_until(snap, "status", "available", attempts=0, verbose=True)
+    pyos.utils.wait_until(snap, "status", "available", attempts=0, verbose=True)
 except KeyboardInterrupt:
     print()
     print("Process interrupted.")

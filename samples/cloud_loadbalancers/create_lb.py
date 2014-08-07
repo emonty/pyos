@@ -19,13 +19,13 @@
 from __future__ import print_function
 
 import os
-import pyrax
+import pyos
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-clb = pyrax.cloud_loadbalancers
-lb_name = pyrax.utils.random_ascii(length=8)
+pyos.set_credential_file(creds_file)
+clb = pyos.cloud_loadbalancers
+lb_name = pyos.utils.random_ascii(length=8)
 
 # You may have to adjust the address of the node to something on
 # the same internal network as your load balancer.

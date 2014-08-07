@@ -3,14 +3,14 @@
 ## Basic Concepts
 Rackspace Cloud Monitoring provides timely and accurate information about how your resources are performing. It supplies you with key information that can help you manage your business by enabling you to keep track of your cloud resources and receive instant notification when a resource needs your attention. You can quickly create multiple monitors with predefined checks, such as PING, HTTPS, SMTP, and many others.
 
-## Monitoring in pyrax
-Once you have authenticated, you can reference the monitoring service via `pyrax.cloud_monitoring`. You interact with Cloud Monitoring through this object.
+## Monitoring in pyos
+Once you have authenticated, you can reference the monitoring service via `pyos.cloud_monitoring`. You interact with Cloud Monitoring through this object.
 
 For the sake of brevity and convenience, it is common to define abbreviated aliases for the modules. All the code in this document assumes that you have added the following line at the top of your script:
 
-    cm = pyrax.cloud_monitoring
+    cm = pyos.cloud_monitoring
 
-Note that as of this writing, pyrax only supports **remote monitoring**. There is a second type of monitoring that is currently in Preview mode that uses a *Monitoring Agent* installed on your device.
+Note that as of this writing, pyos only supports **remote monitoring**. There is a second type of monitoring that is currently in Preview mode that uses a *Monitoring Agent* installed on your device.
 
 
 ## Key Terminology

@@ -10,10 +10,10 @@ In the publisher-subscriber model, messages are posted to a queue as in the prod
 In both of these models, administrators can get queue statistics that display the most recent and oldest messages, the number of unclaimed messages, and more.
 
 
-## Using Queues in pyrax
-Once you have authenticated, you can reference the Queues service via `pyrax.queues`. To make your coding easier, include the following line at the beginning of your code:
+## Using Queues in pyos
+Once you have authenticated, you can reference the Queues service via `pyos.queues`. To make your coding easier, include the following line at the beginning of your code:
 
-    pq = pyrax.queues
+    pq = pyos.queues
 
 Then you can simply use the alias `pq` to reference the service. All of the code samples in this document assume that `pq` has been defined this way.
 
@@ -26,7 +26,7 @@ If you aren't familiar with UUIDs, Python provides a module in the Standard Libr
     import uuid
     my_client_id = str(uuid.uuid4())
 
-Once you have your ID, you need to make it available to pyrax. There are two ways: 
+Once you have your ID, you need to make it available to pyos. There are two ways: 
 
 1) After authenticating, but before calling any Cloud Queues methods, set it directly:
 
@@ -53,10 +53,10 @@ This call returns `True` or `False`, depending on the existence of a queue with 
 ## Listing queues
 The code below shows how you can list all the queues in a given region:
 
-    qs = pyrax.queues.list()
+    qs = pyos.queues.list()
 
 ## Posting a Message to a Queue
-Messages can be any type of data, as long as they do not exceed 256 KB in length. The message body can be simple values, or a chunk of XML, or a list of JSON values, or anything else. pyrax handles the JSON-encoding required to post the message.
+Messages can be any type of data, as long as they do not exceed 256 KB in length. The message body can be simple values, or a chunk of XML, or a list of JSON values, or anything else. pyos handles the JSON-encoding required to post the message.
 
 You need to specify the queue you wish to post to. This can be either the name of the queue, or a `Queue` object. If you already have a `Queue` object reference, you can call its `post_message()` method directly. The call is:
 

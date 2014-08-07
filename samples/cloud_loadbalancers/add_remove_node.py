@@ -21,13 +21,13 @@ from __future__ import print_function
 import os
 import time
 
-import pyrax
+import pyos
 
 
-pyrax.set_setting("identity_type", "rackspace")
+pyos.set_setting("identity_type", "rackspace")
 creds_file = os.path.expanduser("~/.rackspace_cloud_credentials")
-pyrax.set_credential_file(creds_file)
-clb = pyrax.cloud_loadbalancers
+pyos.set_credential_file(creds_file)
+clb = pyos.cloud_loadbalancers
 
 lb = clb.list()[0]
 print()
@@ -39,7 +39,7 @@ print("Current nodes:", lb.nodes
 # the same internal network as your load balancer.
 new_node = clb.Node(address="10.177.1.2", port=80, condition="ENABLED")
 lb.add_nodes([new_node])
-pyrax.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30,
+pyos.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30,
         verbose=True)
 
 print()
@@ -53,7 +53,7 @@ added_node = [node for node in lb.nodes
 print()
 print("Added Node:", added_node)
 added_node.delete()
-pyrax.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30,
+pyos.utils.wait_until(lb, "status", "ACTIVE", interval=1, attempts=30,
         verbose=True)
 print()
 print("After removing node:", lb.nodes)

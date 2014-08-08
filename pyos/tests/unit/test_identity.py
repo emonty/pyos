@@ -17,7 +17,6 @@ import pyos
 import pyos.utils as utils
 import pyos.exceptions as exc
 from pyos import base_identity
-from pyos.identity import rax_identity
 
 from pyos import fakes
 
@@ -36,13 +35,10 @@ class IdentityTest(unittest.TestCase):
         self.username = "TESTUSER"
         self.password = "TESTPASSWORD"
         self.base_identity_class = base_identity.BaseIdentity
-        self.keystone_identity_class = pyos.keystone_identity.KeystoneIdentity
-        self.rax_identity_class = pyos.rax_identity.RaxIdentity
-        self.id_classes = {"keystone": self.keystone_identity_class,
-                "rackspace": self.rax_identity_class}
+        self.identity_class = pyos.identity.KeystoneIdentity
 
     def _get_clean_identity(self):
-        return self.rax_identity_class()
+        return self.identity_class()
 
     def setUp(self):
         self.identity = fakes.FakeIdentity()
@@ -290,12 +286,12 @@ class IdentityTest(unittest.TestCase):
         pyos.get_setting = sav_gs
 
     def test_init(self):
-        for cls in self.id_classes.values():
-            ident = cls(username=self.username, password=self.password)
-            self.assertEqual(ident.username, self.username)
-            self.assertEqual(ident.password, self.password)
-            self.assertIsNone(ident.token)
-            self.assertIsNone(ident._creds_file)
+        ident = self.identity_class(
+            username=self.username, password=self.password)
+        self.assertEqual(ident.username, self.username)
+        self.assertEqual(ident.password, self.password)
+        self.assertIsNone(ident.token)
+        self.assertIsNone(ident._creds_file)
 
     def test_auth_with_token_name(self):
         for cls in self.id_classes.values():
@@ -375,37 +371,6 @@ class IdentityTest(unittest.TestCase):
             self.assertRaises(exc.AuthenticationFailed, ident.auth_with_token,
                     tok, tenant_id=tenant_id)
 
-    def test_auth_with_token_rax(self):
-        ident = self.rax_identity_class()
-        mid = utils.random_unicode()
-        oid = utils.random_unicode()
-        token = utils.random_unicode()
-
-        class FakeResp(object):
-            info = None
-
-            def json(self):
-                return self.info
-
-        resp_main = FakeResp()
-        resp_main_body = {"access": {
-                "serviceCatalog": [{"a": "a", "name": "a", "type": "a"},
-                        {"b": "b", "name": "b", "type": "b"}],
-                "user": {"roles":
-                        [{"tenantId": oid, "name": "object-store:default"}],
-                }}}
-        ident._call_token_auth = Mock(return_value=(resp_main, resp_main_body))
-
-        def fake_parse(dct):
-            svcs = dct.get("access", {}).get("serviceCatalog", {})
-            pyos.services = [svc["name"] for svc in svcs]
-
-        ident._parse_response = fake_parse
-        ident.auth_with_token(token, tenant_id=mid)
-        ident._call_token_auth.assert_called_with(token, oid, None)
-        self.assertTrue("a" in pyos.services)
-        self.assertTrue("b" in pyos.services)
-
     def test_get_client(self):
         ident = self.identity
         ident.authenticated = True
@@ -421,21 +386,6 @@ class IdentityTest(unittest.TestCase):
         ident.services[svc].endpoints = {region: ep}
         ret = ident.get_client(svc, region)
         self.assertEqual(ret, clt)
-
-    @patch("pyos.base_identity.BaseIdentity.get_client")
-    def test_get_client_rax(self, mock_get_client):
-        from pyos.cloudnetworks import CloudNetworkClient
-        ident = self.rax_identity_class()
-        region = utils.random_unicode()
-        service = "networks"
-        ident.get_client(service, region)
-        mock_get_client.assert_called_with("compute", region, public=True,
-                cached=True, client_class=CloudNetworkClient)
-        # Check with any other service
-        service = utils.random_unicode()
-        ident.get_client(service, region)
-        mock_get_client.assert_called_with(service, region, public=True,
-                cached=True, client_class=None)
 
     def test_get_client_unauthenticated(self):
         ident = self.identity
@@ -515,7 +465,7 @@ class IdentityTest(unittest.TestCase):
             ident.authenticate.assert_called_once_with()
 
     def test_set_credential_file(self):
-        ident = self.rax_identity_class()
+        ident = self.identity_class()
         user = "fakeuser"
         # Use percent signs in key to ensure it doesn't get interpolated.
         key = "fake%api%key"
@@ -560,7 +510,8 @@ class IdentityTest(unittest.TestCase):
                     ident.set_credential_file, tmpname)
 
     def test_set_credential_file_keystone(self):
-        ident = pyos.keystone_identity.KeystoneIdentity(username=self.username,
+        ident = pyos.identity.KeystoneIdentity(
+                username=self.username,
                 password=self.password)
         user = "fakeuser"
         password = "fakeapikey"
@@ -630,28 +581,8 @@ class IdentityTest(unittest.TestCase):
         ret = ident.get_extensions()
         self.assertEqual(ret, [v1, v2])
 
-    def test_get_credentials_rax(self):
-        ident = self.rax_identity_class(username=self.username,
-                api_key=self.password)
-        ident._creds_style = "apikey"
-        creds = ident._format_credentials()
-        user = creds["auth"]["RAX-KSKEY:apiKeyCredentials"]["username"]
-        key = creds["auth"]["RAX-KSKEY:apiKeyCredentials"]["apiKey"]
-        self.assertEqual(self.username, user)
-        self.assertEqual(self.password, key)
-
-    def test_get_credentials_rax_password(self):
-        ident = self.rax_identity_class(username=self.username,
-                password=self.password)
-        ident._creds_style = "password"
-        creds = ident._format_credentials()
-        user = creds["auth"]["passwordCredentials"]["username"]
-        key = creds["auth"]["passwordCredentials"]["password"]
-        self.assertEqual(self.username, user)
-        self.assertEqual(self.password, key)
-
     def test_get_credentials_keystone(self):
-        ident = self.keystone_identity_class(username=self.username,
+        ident = self.identity_class(username=self.username,
                 password=self.password)
         creds = ident._format_credentials()
         user = creds["auth"]["passwordCredentials"]["username"]
@@ -664,16 +595,13 @@ class IdentityTest(unittest.TestCase):
         fake_resp = fakes.FakeIdentityResponse()
         fake_body = fakes.fake_identity_response
         pyos.http.request = Mock(return_value=(fake_resp, fake_body))
-        for cls in self.id_classes.values():
-            ident = cls()
-            if cls is self.keystone_identity_class:
-                # Necessary for testing to avoid NotImplementedError.
-                utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
-            ident.authenticate()
+        ident = self.identity_class()
+        utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
+        ident.authenticate()
         pyos.http.request = savrequest
 
     def test_authenticate_fail_creds(self):
-        ident = self.rax_identity_class(username="BAD", password="BAD")
+        ident = self.identity_class(username="BAD", password="BAD")
         savrequest = pyos.http.request
         fake_resp = fakes.FakeIdentityResponse()
         fake_resp.status_code = 401
@@ -683,7 +611,7 @@ class IdentityTest(unittest.TestCase):
         pyos.http.request = savrequest
 
     def test_authenticate_fail_other(self):
-        ident = self.rax_identity_class(username="BAD", password="BAD")
+        ident = self.identity_class(username="BAD", password="BAD")
         savrequest = pyos.http.request
         fake_resp = fakes.FakeIdentityResponse()
         fake_resp.status_code = 500
@@ -694,7 +622,7 @@ class IdentityTest(unittest.TestCase):
         pyos.http.request = savrequest
 
     def test_authenticate_fail_no_message(self):
-        ident = self.rax_identity_class(username="BAD", password="BAD")
+        ident = self.identity_class(username="BAD", password="BAD")
         savrequest = pyos.http.request
         fake_resp = fakes.FakeIdentityResponse()
         fake_resp.status_code = 500
@@ -705,7 +633,7 @@ class IdentityTest(unittest.TestCase):
         pyos.http.request = savrequest
 
     def test_authenticate_fail_gt_299(self):
-        ident = self.rax_identity_class(username="BAD", password="BAD")
+        ident = self.identity_class(username="BAD", password="BAD")
         savrequest = pyos.http.request
         fake_resp = fakes.FakeIdentityResponse()
         fake_resp.status_code = 444
@@ -716,7 +644,7 @@ class IdentityTest(unittest.TestCase):
         pyos.http.request = savrequest
 
     def test_authenticate_fail_gt_299ino_message(self):
-        ident = self.rax_identity_class(username="BAD", password="BAD")
+        ident = self.identity_class(username="BAD", password="BAD")
         savrequest = pyos.http.request
         fake_resp = fakes.FakeIdentityResponse()
         fake_resp.status_code = 444
@@ -731,22 +659,11 @@ class IdentityTest(unittest.TestCase):
         fake_resp = fakes.FakeIdentityResponse()
         fake_body = fakes.fake_identity_response
         pyos.http.request = Mock(return_value=(fake_resp, fake_body))
-        for cls in self.id_classes.values():
-            ident = cls()
-            if cls is self.keystone_identity_class:
-                # Necessary for testing to avoid NotImplementedError.
-                utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
-            ident.authenticate(connect=False)
+        ident = self.identity_class()
+        # Necessary for testing to avoid NotImplementedError.
+        utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
+        ident.authenticate(connect=False)
         pyos.http.request = savrequest
-
-    def test_rax_endpoints(self):
-        ident = self.rax_identity_class()
-        sav = pyos.get_setting("auth_endpoint")
-        fake_ep = utils.random_unicode()
-        pyos.set_setting("auth_endpoint", fake_ep)
-        ep = ident._get_auth_endpoint()
-        self.assertEqual(ep, fake_ep)
-        pyos.set_setting("auth_endpoint", sav)
 
     def test_auth_token(self):
         for cls in self.id_classes.values():
@@ -919,66 +836,6 @@ class IdentityTest(unittest.TestCase):
                 "http://example.com/v2.0/tokens", headers={},
                 raise_exception=False)
 
-    def test_list_users(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        ret = ident.list_users()
-        self.assertTrue(isinstance(ret, list))
-        are_users = [isinstance(itm, pyos.rax_identity.User) for itm in ret]
-        self.assertTrue(all(are_users))
-
-    def test_list_users_alt_body(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        alt = fakes.fake_identity_user_response.get("users")
-        alt[0]["password"] = "foo"
-        ident.method_get = Mock(return_value=(resp, alt))
-        ret = ident.list_users()
-        self.assertTrue(isinstance(ret, list))
-        are_users = [isinstance(itm, pyos.rax_identity.User) for itm in ret]
-        self.assertTrue(all(are_users))
-
-    def test_list_users_fail(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp.status_code = 401
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        self.assertRaises(exc.AuthorizationFailure, ident.list_users)
-
-    def test_find_user_by_name_rax(self):
-        ident = self.rax_identity_class()
-        ident.get_user = Mock()
-        fake_name = utils.random_unicode()
-        ret = ident.find_user_by_name(fake_name)
-        ident.get_user.assert_called_with(username=fake_name)
-
-    def test_find_user_by_email_rax(self):
-        ident = self.rax_identity_class()
-        ident.get_user = Mock()
-        fake_email = utils.random_unicode()
-        ret = ident.find_user_by_email(fake_email)
-        ident.get_user.assert_called_with(email=fake_email)
-
-    def test_find_user_by_id_rax(self):
-        ident = self.rax_identity_class()
-        ident.get_user = Mock()
-        fake_id = utils.random_unicode()
-        ret = ident.find_user_by_id(fake_id)
-        ident.get_user.assert_called_with(user_id=fake_id)
-
-    def test_find_user_fail_rax(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp.status_code = 404
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        fake_user = utils.random_unicode()
-        self.assertRaises(exc.NotFound, ident.get_user, username=fake_user)
-
     def test_find_user_fail_base(self):
         ident = self.identity
         fake = utils.random_unicode()
@@ -987,274 +844,8 @@ class IdentityTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, ident.find_user_by_id, fake)
         self.assertRaises(NotImplementedError, ident.get_user, fake)
 
-    def test_get_user_by_id(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp_body = resp.json().copy()
-        del resp_body["users"]
-        fake = utils.random_unicode()
-        ident.method_get = Mock(return_value=(resp, resp_body))
-        ret = ident.get_user(user_id=fake)
-        self.assertTrue(isinstance(ret, base_identity.User))
-
-    def test_get_user_by_username(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp_body = resp.json().copy()
-        del resp_body["users"]
-        fake = utils.random_unicode()
-        ident.method_get = Mock(return_value=(resp, resp_body))
-        ret = ident.get_user(username=fake)
-        self.assertTrue(isinstance(ret, base_identity.User))
-
-    def test_get_user_by_email(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp_body = resp.json()
-        fake = utils.random_unicode()
-        ident.method_get = Mock(return_value=(resp, resp_body))
-        ret = ident.get_user(email=fake)
-        self.assertTrue(isinstance(ret[0], base_identity.User))
-
-    def test_get_user_missing_params(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        self.assertRaises(ValueError, ident.get_user)
-
-    def test_get_user_not_found(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp_body = resp.json().copy()
-        del resp_body["users"]
-        del resp_body["user"]
-        fake = utils.random_unicode()
-        ident.method_get = Mock(return_value=(resp, resp_body))
-        self.assertRaises(exc.NotFound, ident.get_user, username=fake)
-
-    def test_create_user(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 201
-            ident.method_post = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            ident.create_user(fake_name, fake_email, fake_password)
-            cargs = ident.method_post.call_args
-            self.assertEqual(len(cargs), 2)
-            self.assertEqual(cargs[0], ("users", ))
-            data = cargs[1]["data"]["user"]
-            self.assertEqual(data["username"], fake_name)
-            self.assertTrue(fake_password in data.values())
-
-    def test_create_user_not_authorized(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 401
-            ident.method_post = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            self.assertRaises(exc.AuthorizationFailure, ident.create_user,
-                    fake_name, fake_email, fake_password)
-
-    def test_create_user_duplicate(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 409
-            ident.method_post = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            self.assertRaises(exc.DuplicateUser, ident.create_user,
-                    fake_name, fake_email, fake_password)
-
-    def test_create_user_bad_email(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 400
-            resp_body = {"badRequest": {"message":
-                    "Expecting valid email address"}}
-            ident.method_post = Mock(return_value=(resp, resp_body))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            self.assertRaises(exc.InvalidEmail, ident.create_user,
-                    fake_name, fake_email, fake_password)
-
-    def test_create_user_not_found(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 404
-            ident.method_post = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            self.assertRaises(exc.AuthorizationFailure, ident.create_user,
-                    fake_name, fake_email, fake_password)
-
-    def test_create_user_other(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 400
-            resp_body = {"badRequest": {"message": "fake"}}
-            ident.method_post = Mock(return_value=(resp, resp_body))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_password = utils.random_unicode()
-            self.assertRaises(exc.BadRequest, ident.create_user,
-                    fake_name, fake_email, fake_password)
-
-    def test_update_user(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            ident.method_put = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_username = utils.random_unicode()
-            fake_uid = utils.random_unicode()
-            fake_region = utils.random_unicode()
-            fake_enabled = random.choice((True, False))
-            kwargs = {"email": fake_email, "username": fake_username,
-                    "uid": fake_uid, "enabled": fake_enabled}
-            if isinstance(ident, self.rax_identity_class):
-                kwargs["defaultRegion"] = fake_region
-            ident.update_user(fake_name, **kwargs)
-            cargs = ident.method_put.call_args
-            self.assertEqual(len(cargs), 2)
-            self.assertEqual(cargs[0], ("users/%s" % fake_name, ))
-            data = cargs[1]["data"]["user"]
-            self.assertEqual(data["enabled"], fake_enabled)
-            self.assertEqual(data["username"], fake_username)
-            self.assertTrue(fake_email in data.values())
-            if isinstance(ident, self.rax_identity_class):
-                self.assertTrue(fake_region in data.values())
-
-    def test_update_user_fail(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 401
-            ident.method_put = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            fake_email = utils.random_unicode()
-            fake_username = utils.random_unicode()
-            fake_uid = utils.random_unicode()
-            fake_region = utils.random_unicode()
-            fake_enabled = random.choice((True, False))
-            kwargs = {"email": fake_email, "username": fake_username,
-                    "uid": fake_uid, "enabled": fake_enabled}
-            if isinstance(ident, self.rax_identity_class):
-                kwargs["defaultRegion"] = fake_region
-            self.assertRaises(exc.AuthorizationFailure, ident.update_user,
-                    fake_name, **kwargs)
-
-    def test_delete_user(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            ident.method_delete = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            ident.delete_user(fake_name)
-            cargs = ident.method_delete.call_args
-            self.assertEqual(len(cargs), 2)
-            self.assertEqual(cargs[0], ("users/%s" % fake_name, ))
-
-    def test_delete_user_not_found(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 404
-            ident.method_delete = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            self.assertRaises(exc.UserNotFound, ident.delete_user, fake_name)
-
-    def test_delete_user_fail(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 401
-            ident.method_delete = Mock(return_value=(resp, resp.json()))
-            fake_name = utils.random_unicode()
-            self.assertRaises(exc.AuthorizationFailure, ident.delete_user,
-                    fake_name)
-
-    def test_list_roles_for_user(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 200
-            ident.method_get = Mock(return_value=(resp, resp.json()))
-            resp = ident.list_roles_for_user("fake")
-            self.assertTrue(isinstance(resp, list))
-            role = resp[0]
-            self.assertTrue("description" in role)
-            self.assertTrue("name" in role)
-            self.assertTrue("id" in role)
-
-    def test_list_roles_for_user_fail(self):
-        for cls in self.id_classes.values():
-            ident = cls()
-            resp = fakes.FakeIdentityResponse()
-            resp.response_type = "users"
-            resp.status_code = 401
-            ident.method_get = Mock(return_value=(resp, resp.json()))
-            self.assertRaises(exc.AuthorizationFailure,
-                    ident.list_roles_for_user, "fake")
-
-    def test_list_credentials(self):
-        ident = self.rax_identity_class()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp.status_code = 200
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        fake_name = utils.random_unicode()
-        ident.list_credentials(fake_name)
-        cargs = ident.method_get.call_args
-        called_uri = cargs[0][0]
-        self.assertTrue("/credentials" in called_uri)
-        self.assertTrue("users/%s/" % fake_name in called_uri)
-
-    def test_list_credentials_no_user(self):
-        ident = self.identity
-        ident.user = fakes.FakeEntity()
-        resp = fakes.FakeIdentityResponse()
-        resp.response_type = "users"
-        resp.status_code = 200
-        ident.method_get = Mock(return_value=(resp, resp.json()))
-        ident.list_credentials()
-        cargs = ident.method_get.call_args
-        called_uri = cargs[0][0]
-        self.assertTrue("/credentials" in called_uri)
-        self.assertTrue("users/%s/" % ident.user.id in called_uri)
-
     def test_get_keystone_endpoint(self):
-        ident = self.keystone_identity_class()
+        ident = self.identity_class()
         fake_ep = utils.random_unicode()
         sav_setting = pyos.get_setting
         pyos.get_setting = Mock(return_value=fake_ep)
@@ -1263,7 +854,7 @@ class IdentityTest(unittest.TestCase):
         pyos.get_setting = sav_setting
 
     def test_get_keystone_endpoint_fail(self):
-        ident = self.keystone_identity_class()
+        ident = self.identity_class()
         sav_setting = pyos.get_setting
         pyos.get_setting = Mock(return_value=None)
         self.assertRaises(exc.EndpointNotDefined, ident._get_auth_endpoint)
@@ -1295,10 +886,9 @@ class IdentityTest(unittest.TestCase):
         pyos.http.request = Mock(return_value=(fakes.FakeIdentityResponse(),
                 fakes.fake_identity_response))
         for cls in self.id_classes.values():
-            ident = cls()
-            if cls is self.keystone_identity_class:
-                # Necessary for testing to avoid NotImplementedError.
-                utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
+            ident = self.identity_class()
+            # Necessary for testing to avoid NotImplementedError.
+            utils.add_method(ident, lambda self: "", "_get_auth_endpoint")
             ident.authenticate()
             valid = ident._has_valid_token()
             self.assertTrue(valid)
@@ -1405,43 +995,6 @@ class IdentityTest(unittest.TestCase):
             ident.method_get = Mock(return_value=(resp, resp.json()))
             self.assertRaises(exc.AuthorizationFailure,
                     ident.get_token_endpoints)
-
-    def test_reset_api_key(self):
-        ident = self.identity
-        self.assertRaises(NotImplementedError, ident.reset_api_key)
-
-    def test_reset_api_key_rax(self):
-        ident = self.rax_identity_class()
-        user = utils.random_unicode()
-        nm = utils.random_unicode()
-        key = utils.random_unicode()
-        resp = fakes.FakeResponse()
-        resp_body = {"RAX-KSKEY:apiKeyCredentials": {
-                "username": nm, "apiKey": key}}
-        ident.method_post = Mock(return_value=(resp, resp_body))
-        exp_uri = "users/%s/OS-KSADM/credentials/" % user
-        exp_uri += "RAX-KSKEY:apiKeyCredentials/RAX-AUTH/reset"
-        ret = ident.reset_api_key(user)
-        self.assertEqual(ret, key)
-        ident.method_post.assert_called_once_with(exp_uri)
-
-    @patch("pyos.utils.get_id")
-    def test_reset_api_key_rax_no_user(self, mock_get_id):
-        ident = self.rax_identity_class()
-        user = utils.random_unicode()
-        mock_get_id.return_value = user
-        ident.authenticated = True
-        nm = utils.random_unicode()
-        key = utils.random_unicode()
-        resp = fakes.FakeResponse()
-        resp_body = {"RAX-KSKEY:apiKeyCredentials": {
-                "username": nm, "apiKey": key}}
-        ident.method_post = Mock(return_value=(resp, resp_body))
-        exp_uri = "users/%s/OS-KSADM/credentials/" % user
-        exp_uri += "RAX-KSKEY:apiKeyCredentials/RAX-AUTH/reset"
-        ret = ident.reset_api_key()
-        self.assertEqual(ret, key)
-        ident.method_post.assert_called_once_with(exp_uri)
 
     def test_get_tenant(self):
         for cls in self.id_classes.values():

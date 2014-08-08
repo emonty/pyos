@@ -1,86 +1,22 @@
 #!/usr/bin/env python
+# Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from setuptools import setup
-from setuptools.command.sdist import sdist as _sdist
-import re
-import sys
-import time
-import subprocess
-if sys.version < "2.2.3":
-    from distutils.dist import DistributionMetadata
-    DistributionMetadata.classifiers = None
-    DistributionMetadata.download_url = None
+# THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
+import setuptools
 
-# Workaround for problems caused by this import
-# It's either this or hardcoding the version.
-#from pyos.version import version
-with open("pyos/version.py", "rt") as vfile:
-    version_text = vfile.read()
-vmatch = re.search(r'version ?= ?"(.+)"$', version_text)
-version = vmatch.groups()[0]
-
-# When set to '0' this expands in the RPM SPEC file to a unique date-base string
-# Set to another value when cutting official release RPMS, then change back to
-# zero for the next development cycle
-release = '0'
-
-class sdist(_sdist):
-    """ custom sdist command, to prep pyos.spec file """
-
-    def run(self):
-        global version
-        global release
-
-        # Create a development release string for later use
-        git_head = subprocess.Popen("git log -1 --pretty=format:%h",
-                                    shell=True,
-                                    stdout=subprocess.PIPE).communicate()[0].strip()
-        date = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        git_release = "%sgit%s" % (date, git_head)
-
-        # Expand macros in pyos.spec.in
-        spec_in = open('pyos.spec.in', 'r')
-        spec = open('pyos.spec', 'w')
-        for line in spec_in.xreadlines():
-            if "@VERSION@" in line:
-                line = line.replace("@VERSION@", version)
-            elif "@RELEASE@" in line:
-                # If development release, include date+githash in %{release}
-                if release.startswith('0'):
-                    release += '.' + git_release
-                line = line.replace("@RELEASE@", release)
-            spec.write(line)
-        spec_in.close()
-        spec.close()
-
-        # Run parent constructor
-        _sdist.run(self)
-
-testing_requires = ["mock"]
-
-setup(
-    name="pyos",
-    version=version,
-    description="Python language bindings for OpenStack Clouds.",
-    author="Rackspace",
-    author_email="ed.leafe@rackspace.com",
-    url="https://github.com/rackspace/pyos",
-    keywords="pyos rackspace cloud openstack",
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 2",
-    ],
-    install_requires=[
-        "python-novaclient>=2.13.0",
-        "rackspace-novaclient",
-        "keyring",
-        "requests>=2.2.1",
-        "six>=1.5.2",
-    ] + testing_requires,
-    packages=[
-        "pyos",
-        "pyos/identity",
-    ],
-    cmdclass = {'sdist': sdist}
-)
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True)

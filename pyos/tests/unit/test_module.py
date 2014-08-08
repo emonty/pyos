@@ -41,8 +41,6 @@ class PyraxInitTest(unittest.TestCase):
                     "region": "DFW",
                     "encoding": "utf-8",
                     "http_debug": False,
-                    "identity_class": pyos.rax_identity.RaxIdentity,
-                    "identity_type": "rax_identity.RaxIdentity",
                     "keyring_username": "fakeuser",
                     "tenant_id": None,
                     "tenant_name": None,
@@ -55,8 +53,6 @@ class PyraxInitTest(unittest.TestCase):
                     "region": "NOWHERE",
                     "encoding": "utf-8",
                     "http_debug": False,
-                    "identity_class": pyos.keystone_identity.KeystoneIdentity,
-                    "identity_type": "keystone_identity.KeystoneIdentity",
                     "keyring_username": "fakeuser",
                     "tenant_id": None,
                     "tenant_name": None,
@@ -352,16 +348,6 @@ class PyraxInitTest(unittest.TestCase):
         pyos.set_default_region(new_region)
         self.assertEqual(pyos.default_region, new_region)
         pyos.default_region = orig_region
-
-    def test_set_identity_type_setting(self):
-        savtyp = pyos.get_setting("identity_type")
-        savcls = pyos.get_setting("identity_class")
-        pyos.set_setting("identity_class", None)
-        pyos.set_setting("identity_type", "keystone")
-        cls = pyos.get_setting("identity_class")
-        self.assertEqual(cls, pyos.keystone_identity.KeystoneIdentity)
-        pyos.set_setting("identity_type", savtyp)
-        pyos.set_setting("identity_class", savcls)
 
     def test_set_region_setting(self):
         ident = pyos.identity

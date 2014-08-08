@@ -44,41 +44,28 @@ try:
 except ImportError:
     keyring = None
 
-# The following try block is only needed when first installing pyos,
-# since importing the version info in setup.py tries to import this
-# entire module.
-try:
-    from .identity import *
+from .identity import *
 
-    from . import exceptions as exc
-    from . import http
-    from . import version
+from . import exceptions as exc
+from . import http
+from . import version
 
-    from novaclient import exceptions as _cs_exceptions
-    from novaclient import auth_plugin as _cs_auth_plugin
-    from novaclient.shell import OpenStackComputeShell as _cs_shell
-    from novaclient.v1_1 import client as _cs_client
-    from novaclient.v1_1.servers import Server as CloudServer
+from novaclient import exceptions as _cs_exceptions
+from novaclient import auth_plugin as _cs_auth_plugin
+from novaclient.shell import OpenStackComputeShell as _cs_shell
+from novaclient.v1_1 import client as _cs_client
+from novaclient.v1_1.servers import Server as CloudServer
 
-    from .clouddatabases import CloudDatabaseClient
-    from .cloudloadbalancers import CloudLoadBalancerClient
-    from .cloudblockstorage import CloudBlockStorageClient
-    from .clouddns import CloudDNSClient
-    from .cloudnetworks import CloudNetworkClient
-    from .cloudmonitoring import CloudMonitorClient
-    from .image import ImageClient
-    from .object_storage import StorageClient
-    from .queueing import QueueClient
-except ImportError:
-    # See if this is the result of the importing of version.py in setup.py
-    callstack = inspect.stack()
-    in_setup = False
-    for stack in callstack:
-        if stack[1].endswith("/setup.py"):
-            in_setup = True
-    if not in_setup:
-        # This isn't a normal import problem during setup; re-raise
-        raise
+from .clouddatabases import CloudDatabaseClient
+from .cloudloadbalancers import CloudLoadBalancerClient
+from .cloudblockstorage import CloudBlockStorageClient
+from .clouddns import CloudDNSClient
+from .cloudnetworks import CloudNetworkClient
+from .cloudmonitoring import CloudMonitorClient
+from .identity import KeystoneIdentity
+from .image import ImageClient
+from .object_storage import StorageClient
+from .queueing import QueueClient
 
 # Initiate the services to None until we are authenticated.
 cloudservers = None
@@ -125,33 +112,12 @@ _client_classes = {
         }
 
 
-def _id_type(ityp):
-    """Allow for shorthand names for the most common types."""
-    if ityp.lower() == "rackspace":
-        ityp = "rax_identity.RaxIdentity"
-    elif ityp.lower() == "keystone":
-        ityp = "keystone_identity.KeystoneIdentity"
-    return ityp
-
-
-def _import_identity(import_str):
-    try:
-        import_str = _id_type(import_str)
-        full_str = "pyos.identity.%s" % import_str
-        return utils.import_class(full_str)
-    except ImportError:
-        pass
-    return utils.import_class(import_str)
-
-
-
 class Settings(object):
     """
     Holds and manages the settings for pyos.
     """
     _environment = None
     env_dct = {
-            "identity_type": "CLOUD_ID_TYPE",
             "auth_endpoint": "CLOUD_AUTH_ENDPOINT",
             "keyring_username": "CLOUD_KEYRING_USER",
             "region": "CLOUD_REGION",
@@ -181,14 +147,7 @@ class Settings(object):
             ret = None
         if ret is None:
             # See if it's set in the environment
-            if key == "identity_class":
-                # This is defined via the identity_type
-                env_var = self.env_dct.get("identity_type")
-                ityp = os.environ.get(env_var)
-                if ityp:
-                    return _import_identity(ityp)
-            else:
-                env_var = self.env_dct.get(key)
+            env_var = self.env_dct.get(key)
             try:
                 ret = os.environ[env_var]
             except KeyError:
@@ -213,10 +172,7 @@ class Settings(object):
         if key not in dct:
             raise exc.InvalidSetting("The setting '%s' is not defined." % key)
         dct[key] = val
-        if key == "identity_type":
-            # If setting the identity_type, also change the identity_class.
-            dct["identity_class"] = _import_identity(val)
-        elif key == "region":
+        if key == "region":
             if not identity:
                 return
             current = identity.region
@@ -294,10 +250,6 @@ class Settings(object):
                     creds_found = True
             dct = self._settings[section_name] = {}
             dct["region"] = safe_get(section, "region", default_region)
-            ityp = safe_get(section, "identity_type")
-            if ityp:
-                dct["identity_type"] = _id_type(ityp)
-                dct["identity_class"] = _import_identity(ityp)
             # Handle both the old and new names for this setting.
             debug = safe_get(section, "debug")
             if debug is None:
@@ -400,17 +352,11 @@ def _create_identity(id_type=None, username=None, password=None, tenant_id=None,
     module-level name 'identity' by default. If 'return_context' is True, the
     module-level 'identity' is untouched, and instead the instance is returned.
     """
-    if id_type:
-        cls = _import_identity(id_type)
-    else:
-        cls = settings.get("identity_class")
-    if not cls:
-        raise exc.IdentityClassNotDefined("No identity class has "
-                "been defined for the current environment.")
     if verify_ssl is None:
         verify_ssl = get_setting("verify_ssl")
-    context = cls(username=username, password=password, tenant_id=tenant_id,
-            tenant_name=tenant_name, api_key=api_key, verify_ssl=verify_ssl)
+    context = KeystoneIdentity(
+        username=username, password=password, tenant_id=tenant_id,
+        tenant_name=tenant_name, api_key=api_key, verify_ssl=verify_ssl)
     if return_context:
         return context
     else:

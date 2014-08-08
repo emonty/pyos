@@ -57,8 +57,7 @@ import pyos.exceptions as exc
 from pyos.base_identity import BaseIdentity
 from pyos.base_identity import Endpoint
 from pyos.base_identity import Service
-from pyos.identity.rax_identity import RaxIdentity
-from pyos.identity.keystone_identity import KeystoneIdentity
+from pyos.identity import KeystoneIdentity
 import pyos.utils as utils
 
 
